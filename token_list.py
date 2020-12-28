@@ -26,6 +26,12 @@ from modules.core.stopwatch import StopWatch
 from modules.core.get_vars import GetVars
 from modules.core.banner import header, footer
 
+try:
+    from mistifi import MistiFi
+except ImportError:
+    sys.exit("mistifi not installed. Run\n\npip install mistifi\n\nand retry the script")
+
+
 logger = ScriptLogger('mist-api')
 logger.info("Starting script...")
 
@@ -35,24 +41,29 @@ vars_found = vars_obj.find_vars()
 api_token = vars_found.get('token')
 
 # define URLs
-base_url = "https://api.mist.com"
-tokens_url = "{}/api/v1/self/apitokens".format(base_url)
+#base_url = "https://api.mist.com"
+#tokens_url = "{}/api/v1/self/apitokens".format(base_url)
 
 def main():
 
     timer = StopWatch()
     timer.start()
 
-    if not api_token:
-        print("You must define a valid API key using the MIST_TOKEN environmental variable name to use this script...exiting.")
-        sys.exit()
+    mist = MistiFi(token=os.getenv('MIST_TOKEN'))
+    mist.comms()
+
+    # The library takes care of the below
+    #if not api_token:
+    #    print("You must define a valid API key using the MIST_TOKEN environmental variable name to use this script...exiting.")
+    #    sys.exit()
     
     header()
 
     logger.info("Getting tokens.")
     
-    verb_obj = MistVerbs(api_token)
-    tokens = verb_obj.mist_read(tokens_url)
+    tokens = mist.apitokens()
+    #verb_obj = MistVerbs(api_token)
+    #tokens = verb_obj.mist_read(tokens_url)
     pprint(tokens)
 
     logger.info("Script complete.")
